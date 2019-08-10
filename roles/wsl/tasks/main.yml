@@ -1,0 +1,40 @@
+- name: ansible for windows host settings
+  block:
+
+  - name: install package contains ConfigureRemotingForAnsible.ps1
+    apt:
+      name: "{{ packages }}"
+      state: latest
+    vars:
+      packages:
+      - ansible-doc
+    become: true
+
+  - name: prepare ConfigureRemotingForAnsible.ps1
+    shell: gunzip --stdout /usr/share/doc/ansible-doc/examples/scripts/ConfigureRemotingForAnsible.ps1.gz > /tmp/ConfigureRemotingForAnsible.ps1
+    args:
+      creates: /tmp/ConfigureRemotingForAnsible.ps1
+
+  - name: prepare winrm settings
+    command: powershell.exe -Command "Start-Process powershell.exe -Verb runAs -ArgumentList \"-ExecutionPolicy RemoteSigned\", '\\\\wsl\`$\\Debian\\tmp\\ConfigureRemotingForAnsible.ps1', \"-EnableCredSSP\", \"-DisableBasicAuth\", \"-SkipNetworkProfileCheck\""
+
+  - name: install needed package for credssp
+    apt:
+      name: "{{ packages }}"
+      state: latest
+    vars:
+      packages:
+      - gcc
+      - python3-dev
+      - libssl-dev
+    become: true
+
+  - name: prepare credssp enable pywinrm via pip
+    pip:
+      name: pywinrm[credssp]
+      executable: pip3
+
+  become: false
+  when:
+    - "ansible_kernel is match('.*Microsoft$')"
+    - "ansible_os_family == 'Debian'"

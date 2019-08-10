@@ -1,0 +1,13 @@
+---
+# This playbook deploys the whole application stack in this site for now.
+
+- name: winrm preparation from wsl
+  hosts: localhost
+  connection: local
+  roles:
+    - wsl
+
+- name: windows settings via winrm
+  hosts: windows
+  roles:
+    - win

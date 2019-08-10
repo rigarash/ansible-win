@@ -1,0 +1,7 @@
+- name: Install packages by Chocolatey
+  win_chocolatey:
+    name: '{{ packages }}'
+    state: latest
+  vars:
+    packages:
+    - 7zip
